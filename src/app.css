@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	@font-face {
+		font-family: 'Permanent Marker';
+		font-style: normal;
+		font-weight: 400;
+		font-display: block;
+		src: url(/fonts/PermanentMarker.woff2) format('woff2');
+	}
+}
+
+.form-input-additional {
+	@apply bg-gray-50 w-full rounded-md border-0 ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset;
+	@apply dark:text-white dark:bg-slate-700 dark:placeholder:text-slate-500 dark:ring-slate-500;
+}
+
+.form-label {
+	@apply inline-flex text-gray-700 dark:text-gray-300 mb-3 mt-5 font-medium;
+}
+
+.btn-secondary {
+	@apply flex items-center justify-center gap-x-2 rounded-md bg-gray-900 hover:bg-gray-800 dark:bg-slate-900 dark:hover:bg-slate-800 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 focus-visible:dark:outline-slate-300;
+}

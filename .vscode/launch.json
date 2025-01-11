@@ -1,0 +1,45 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Launch SvelteKit server",
+			"type": "node",
+			"request": "launch",
+			"program": "${workspaceFolder}/node_modules/.bin/svelte-kit",
+			"args": ["dev"],
+			"cwd": "${workspaceFolder}",
+			"sourceMaps": true,
+			"console": "integratedTerminal",
+			"skipFiles": ["<node_internals>/**"]
+		},
+		{
+			"type": "firefox",
+			"request": "launch",
+			"name": "Launch Firefox",
+			"url": "http://localhost:5173",
+			"webRoot": "${workspaceFolder}",
+			"profile": "default"
+		},
+		{
+			"type": "chrome",
+			"request": "launch",
+			"name": "Launch Chromium",
+			"url": "http://localhost:5173",
+			"webRoot": "${workspaceFolder}",
+			"runtimeExecutable": "/home/unknown/.nix-profile/bin/chromium",
+			"sourceMaps": true,
+			"runtimeArgs": ["--remote-debugging-port=9222"],
+			"skipFiles": ["<node_internals>/**"]
+		}
+	],
+	"compounds": [
+		{
+			"name": "Full Debugging with Firefox",
+			"configurations": ["Launch SvelteKit server", "Launch Firefox"]
+		},
+		{
+			"name": "Full Debugging with Chromium",
+			"configurations": ["Launch SvelteKit server", "Launch Chromium"]
+		}
+	]
+}
