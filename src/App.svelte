@@ -10,7 +10,7 @@
 </script>
 
 <div class="bg-gray-50 dark:bg-slate-900 min-h-screen">
-	<div class="flex px-2">
+	<div class="p-2">
 		<BrowserStatus />
 	</div>
 	<TheHeader />
