@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { bytesToSizeString } from '$lib/utils'
 	import { initWorker } from '$lib/worker/initWorker'
-	import { zipSync } from 'fflate'
 
 	import ErrorAlert from './ErrorAlert.svelte'
 	import ResultPanel from './ResultPanel.svelte'
@@ -35,7 +34,7 @@
 		try {
 			const sliceFileBuffers = await createSliceFileBuffers()
 			sliceFileDownloads = generateFileDownloadsData(sliceFileBuffers)
-			zipDownload = generateZipDownloadData(sliceFileBuffers)
+			zipDownload = await generateZipDownloadData(sliceFileBuffers)
 			generatedWithParams = { sliceCount, sliceThreshold }
 			secretInputRef?.clearAllInputs()
 		} catch (error) {
@@ -99,23 +98,22 @@
 		})
 	}
 
-	function generateZipDownloadData(sliceBuffers: ArrayBuffer[]): DownloadData {
-		const files: { [key: string]: Uint8Array } = {}
-
-		sliceBuffers.forEach((sliceBuffer, i) => {
-			const filename = generateFilename(i)
-			files[filename] = new Uint8Array(sliceBuffer)
-		})
-
-		const zipped = zipSync(files)
-		const zipBlob = new Blob([zipped], { type: 'application/zip' })
-		const zipUrl = URL.createObjectURL(zipBlob)
-
+	async function generateZipDownloadData(sliceBuffers: ArrayBuffer[]): Promise<DownloadData> {
+		const combinedBlob = new Blob(sliceBuffers, { type: 'application/octet-stream' })
+		const compressedBlob = await compressBlobWithGzip(combinedBlob)
+		
+		const zipUrl = URL.createObjectURL(compressedBlob)
 		return {
 			url: zipUrl,
 			filename: 'slicefiles.zip',
-			fileSize: zipBlob.size
+			fileSize: compressedBlob.size
 		}
+	}
+
+	async function compressBlobWithGzip(inputBlob: Blob): Promise<Blob> {
+		const cs = new CompressionStream('gzip')
+		const compressedStream = inputBlob.stream().pipeThrough(cs)
+		return new Response(compressedStream).blob()
 	}
 
 	function downloadFile(download: DownloadData): void {

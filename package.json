@@ -42,7 +42,6 @@
 		"vitest": "^1.2.0"
 	},
 	"dependencies": {
-		"comlink": "^4.4.1",
-		"fflate": "^0.8.2"
+		"comlink": "^4.4.1"
 	}
 }
