@@ -1,7 +1,7 @@
+import type { Config } from 'tailwindcss'
 import defaultTheme from 'tailwindcss/defaultTheme'
 
-/** @type {import('tailwindcss').Config} */
-export default {
+const config: Config = {
 	darkMode: 'class',
 	content: ['./src/**/*.{html,js,svelte,ts}'],
 	theme: {
@@ -25,3 +25,5 @@ export default {
 	},
 	plugins: [require('@tailwindcss/forms')]
 }
+
+export default config 
