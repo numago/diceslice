@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { bytesToSizeString } from '$lib/utils'
 	import { initWorker } from '$lib/worker/initWorker'
-	import { zipSync } from 'fflate'
+	import JSZip from 'jszip'
 
 	import ErrorAlert from './ErrorAlert.svelte'
 	import ResultPanel from './ResultPanel.svelte'
@@ -16,7 +16,7 @@
 	let secretInputRef: SecretInput | null = null
 
 	let isGeneratingFiles = false
-	let generatedWithParams: { sliceCount: number; sliceThreshold: number }
+	let generatedWithParams = { sliceCount: 0, sliceThreshold: 0 }
 
 	type DownloadData = { url: string; filename: string; fileSize: number }
 	let sliceFileDownloads: DownloadData[] = []
@@ -35,7 +35,7 @@
 		try {
 			const sliceFileBuffers = await createSliceFileBuffers()
 			sliceFileDownloads = generateFileDownloadsData(sliceFileBuffers)
-			zipDownload = generateZipDownloadData(sliceFileBuffers)
+			zipDownload = await generateZipDownloadData(sliceFileBuffers)
 			generatedWithParams = { sliceCount, sliceThreshold }
 			secretInputRef?.clearAllInputs()
 		} catch (error) {
@@ -99,18 +99,16 @@
 		})
 	}
 
-	function generateZipDownloadData(sliceBuffers: ArrayBuffer[]): DownloadData {
-		const files: { [key: string]: Uint8Array } = {}
-
-		sliceBuffers.forEach((sliceBuffer, i) => {
-			const filename = generateFilename(i)
-			files[filename] = new Uint8Array(sliceBuffer)
+	async function generateZipDownloadData(sliceBuffers: ArrayBuffer[]): Promise<DownloadData> {
+		const zip = new JSZip()
+		
+		sliceBuffers.forEach((buffer, index) => {
+			zip.file(generateFilename(index), buffer)
 		})
-
-		const zipped = zipSync(files)
-		const zipBlob = new Blob([zipped], { type: 'application/zip' })
+		
+		const zipBlob = await zip.generateAsync({ type: 'blob' })
 		const zipUrl = URL.createObjectURL(zipBlob)
-
+		
 		return {
 			url: zipUrl,
 			filename: 'slicefiles.zip',

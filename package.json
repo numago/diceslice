@@ -2,6 +2,7 @@
 	"name": "diceslice",
 	"version": "0.0.1",
 	"private": true,
+	"type": "module",
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
@@ -40,9 +41,8 @@
 		"vite": "^5.0.3",
 		"vitest": "^1.2.0"
 	},
-	"type": "module",
 	"dependencies": {
 		"comlink": "^4.4.1",
-		"fflate": "^0.8.2"
+		"jszip": "^3.10.1"
 	}
 }
