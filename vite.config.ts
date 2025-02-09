@@ -1,18 +1,16 @@
-import { sveltekit } from '@sveltejs/kit/vite'
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { fileURLToPath } from 'node:url'
 
+// https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [sveltekit()],
-	test: {
-		browser: {
-			enabled: true,
-			headless: true,
-			name: 'chromium',
-			provider: 'playwright'
-		},
-		include: ['tests/unit/lib/**/*.{test,spec}.{js,ts}'],
-		coverage: {
-			provider: 'istanbul'
+	plugins: [svelte()],
+	resolve: {
+		alias: {
+			'$lib': fileURLToPath(new URL('./src/lib', import.meta.url)),
+			'@': fileURLToPath(new URL('./src', import.meta.url))
 		}
-	}
+	},
+	publicDir: 'public',
+	base: ''
 })
