@@ -10,23 +10,31 @@
 	import { generateSliceFileBuffers } from '$lib'
 	import type { SliceFileMetadata } from '$lib/sliceFile'
 
-	let sliceCount = 5
-	let sliceThreshold = 2
-	let secretInput: File | string | null
-	let secretInputRef: SecretInput | null = null
+	let sliceCount = $state(5)
+	let sliceThreshold = $state(2)
+	let secretInput = $state<File | string | null>(null)
+	let secretInputRef = $state<SecretInput | null>(null)
 
-	let isGeneratingFiles = false
-	let generatedWithParams = { sliceCount: 0, sliceThreshold: 0 }
+	let isGeneratingFiles = $state(false)
+	let generatedWithParams = $state({ sliceCount: 0, sliceThreshold: 0 })
 
 	type DownloadData = { url: string; filename: string; fileSize: number }
-	let sliceFileDownloads: DownloadData[] = []
-	let zipDownload: DownloadData | null = null
-	$: downloadsSize = sliceFileDownloads.reduce((sum, file) => sum + file.fileSize, 0)
+	let sliceFileDownloads = $state<DownloadData[]>([])
+	let zipDownload = $state<DownloadData | null>(null)
+	
+	const downloadsSize = $derived(sliceFileDownloads.reduce((sum, file) => sum + file.fileSize, 0))
 
-	let errorMessage: string = ''
-	$: showError = errorMessage.length > 0
+	let errorMessage = $state('')
+	
+	const showError = $derived(errorMessage.length > 0)
 
-	async function handleSubmit() {
+	// Function to handle form submission with preventDefault
+	function handleSubmit(event: Event) {
+		event.preventDefault()
+		submitForm()
+	}
+
+	async function submitForm() {
 		isGeneratingFiles = true
 		errorMessage = ''
 		sliceFileDownloads = []
@@ -42,6 +50,14 @@
 			errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
 		} finally {
 			isGeneratingFiles = false
+		}
+	}
+
+	// Helper function to prevent default and call the provided function
+	function preventDefaultAndCall(fn: () => void) {
+		return (event: Event) => {
+			event.preventDefault()
+			fn()
 		}
 	}
 
@@ -140,7 +156,7 @@
 </script>
 
 <div>
-	<form on:submit|preventDefault={handleSubmit}>
+	<form onsubmit={handleSubmit}>
 		<SecretInput bind:secret={secretInput} bind:this={secretInputRef} />
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
 			<div>
@@ -210,7 +226,7 @@
 				<button
 					type="button"
 					class="btn-secondary w-full"
-					on:click|preventDefault={triggerSequentialDownloads}
+					onclick={preventDefaultAndCall(triggerSequentialDownloads)}
 					tabindex={0}
 				>
 					<!-- arrow down square stack icon -->
@@ -241,7 +257,7 @@
 				<button
 					type="button"
 					class="btn-secondary w-full"
-					on:click|preventDefault={triggerZipDownload}
+					onclick={preventDefaultAndCall(triggerZipDownload)}
 					tabindex={0}
 				>
 					<!-- archive box arrow down icon -->
@@ -256,16 +272,16 @@
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
-							d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"
+							d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
 						/>
 					</svg>
 					<div class="sm:grow-0 grow">
-						<span class="inline-block"> Download as ZIP file </span>
-						{#if zipDownload}
-							<span class="inline-block">
-								({bytesToSizeString(zipDownload?.fileSize)})
-							</span>
-						{/if}
+						<span class="inline-block">
+							Download ZIP archive
+						</span>
+						<span class="inline-block">
+							({zipDownload ? bytesToSizeString(zipDownload.fileSize) : '0 B'})
+						</span>
 					</div>
 				</button>
 			</div>

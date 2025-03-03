@@ -1,16 +1,22 @@
 <script>
-	import { onMount } from 'svelte'
+	import { onMount } from 'svelte';
 
-	let isDark = false
-
+	let isDark = $state(false);
+	
+	$effect(() => {
+		if (typeof globalThis !== 'undefined') {
+			globalThis.document.body.classList.toggle('dark', isDark);
+		}
+	});
+	
 	onMount(() => {
-		isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-		document.body.classList.toggle('dark', isDark)
-	})
-
+		if (globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			isDark = true;
+		}
+	});
+	
 	function toggleTheme() {
-		isDark = !isDark
-		document.body.classList.toggle('dark', isDark)
+		isDark = !isDark;
 	}
 </script>
 
@@ -19,7 +25,7 @@
 	class="bg-gray-200 dark:bg-slate-800 relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring focus:ring-gray-800 focus:dark:ring-slate-200"
 	role="switch"
 	aria-checked={isDark}
-	on:click={toggleTheme}
+	onclick={toggleTheme}
 >
 	<span class="sr-only">Use setting</span>
 	<span

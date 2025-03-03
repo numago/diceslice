@@ -20,8 +20,8 @@
 			cssClass: 'assemble'
 		}
 	]
-	let activeTabIndex = 0
-	$: activeTab = tabs[activeTabIndex]
+	let activeTabIndex = $state(0)
+	const activeTab = $derived(tabs[activeTabIndex])
 </script>
 
 <div
@@ -33,7 +33,7 @@
 				<button
 					class:active={activeTabIndex === index}
 					class="tab-label {tabs[index].cssClass}"
-					on:click={() => (activeTabIndex = index)}
+					onclick={() => (activeTabIndex = index)}
 				>
 					<span class="sm:inline md:text-lg font-bold">{tab.label}</span>
 				</button>
@@ -51,7 +51,7 @@
 			</p>
 			<hr class="mt-4 dark:border-slate-700" />
 			<div>
-				<svelte:component this={activeTab.component} />
+				<activeTab.component />
 			</div>
 		</div>
 	</div>

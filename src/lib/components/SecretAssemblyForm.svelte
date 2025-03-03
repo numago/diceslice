@@ -4,7 +4,6 @@
 	import { assembleSecretPayload } from '$lib'
 	import type { SliceFilePayload } from '$lib/sliceFile'
 
-	import { onDestroy } from 'svelte'
 	import { scale } from 'svelte/transition'
 
 	import ErrorAlert from './ErrorAlert.svelte'
@@ -18,22 +17,34 @@
 
 	const DECODING_WARNING_BYTE_LENGTH_THRESHOLD = 100000 // 0.1MB
 
-	let uploadedFiles: File[] = []
+	let uploadedFiles = $state<File[]>([])
 
-	let isAssemblingSecret = false
-	let errorMessage: string = ''
-	let isShowError = false
-	let isShowAssemblyResult = false
+	let isAssemblingSecret = $state(false)
+	let errorMessage = $state('')
+	let isShowError = $state(false)
+	let isShowAssemblyResult = $state(false)
 
-	let secretBuffer: Uint8Array | null = null
-	let secretDownloadUrl: string
-	let secretByteLength: number
-	let secretFilename: string
+	let secretBuffer = $state<Uint8Array | null>(null)
+	let secretDownloadUrl = $state('')
+	let secretByteLength = $state(0)
+	let secretFilename = $state('')
 
-	let decodedSecret: string | null = null
-	let isDecodingSecret = false
-	let isShowDecodedSecret = false
-	let isShowDecodingWarning = false
+	let decodedSecret = $state<string | null>(null)
+	let isDecodingSecret = $state(false)
+	let isShowDecodedSecret = $state(false)
+	let isShowDecodingWarning = $state(false)
+
+	$effect(() => {
+		return () => {
+			if (secretDownloadUrl) URL.revokeObjectURL(secretDownloadUrl)
+		}
+	})
+
+	// Function to handle form submission with preventDefault
+	function handleSubmit(event: Event) {
+		event.preventDefault()
+		assembleFiles()
+	}
 
 	async function assembleFiles(): Promise<void> {
 		isAssemblingSecret = true
@@ -67,7 +78,9 @@
 		secretBuffer = payload.data
 		secretByteLength = secretBuffer.byteLength ?? 0
 		secretFilename = payload.metadata.filename ?? 'diceslice.txt'
-		secretDownloadUrl = createDownloadUrl(secretBuffer)
+		if (secretBuffer) {
+			secretDownloadUrl = createDownloadUrl(new Uint8Array(secretBuffer))
+		}
 	}
 
 	async function assemblePayloadFromFiles(files: File[]): Promise<SliceFilePayload> {
@@ -75,14 +88,18 @@
 		return assembleSecretPayload(sliceFileBuffers)
 	}
 
-	function createDownloadUrl(buffer: ArrayBuffer): string {
+	function createDownloadUrl(buffer: Uint8Array): string {
 		const fileBlob = new Blob([buffer], { type: 'application/octet-stream' })
 		return URL.createObjectURL(fileBlob)
 	}
 
-	onDestroy(() => {
-		if (secretDownloadUrl) URL.revokeObjectURL(secretDownloadUrl)
-	})
+	// Helper function to prevent default and call the provided function
+	function preventDefaultAndCall(fn: () => void) {
+		return (event: Event) => {
+			event.preventDefault()
+			fn()
+		}
+	}
 
 	async function toggleDecodedSecretDisplay(): Promise<void> {
 		if (decodedSecret != null) {
@@ -125,7 +142,7 @@
 </script>
 
 <div class="my-2">
-	<form on:submit|preventDefault={assembleFiles}>
+	<form onsubmit={handleSubmit}>
 		<div class="my-2">
 			<p class="form-label">Upload your slice files</p>
 			<MultiFileInput bind:fileArray={uploadedFiles}>
@@ -182,7 +199,7 @@
 					<button
 						type="button"
 						class="btn-secondary w-full"
-						on:click={() => toggleDecodedSecretDisplay()}
+						onclick={preventDefaultAndCall(toggleDecodedSecretDisplay)}
 					>
 						{#if isDecodingSecret}
 							<div class="flex items-center">
@@ -206,7 +223,7 @@
 										class="form-input-additional dark:bg-slate-800"
 										rows="6"
 										value={decodedSecret}
-									/>
+									></textarea>
 								</div>
 							{:else if isShowDecodingWarning}
 								<WarningAlert
