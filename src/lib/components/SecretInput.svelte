@@ -4,13 +4,15 @@
 
 	export let secret: string | File | null
 
-	enum InputMethod {
-		TextArea,
-		TextInput,
-		File
-	}
+	const InputMethod = {
+		TextArea: 'TextArea',
+		TextInput: 'TextInput',
+		File: 'File'
+	} as const;
+	
+	type InputMethodType = typeof InputMethod[keyof typeof InputMethod];
 
-	let secretInputMethod: InputMethod = InputMethod.TextInput
+	let secretInputMethod: InputMethodType = InputMethod.TextInput
 	let uploadFileList: FileList | undefined
 	let fileInput: File | null
 	let textInput: string = ''
@@ -18,7 +20,7 @@
 	$: fileInput = uploadFileList?.[0] ?? null
 	$: secret = secretInputMethod === InputMethod.File ? fileInput : textInput
 
-	function updateInputMethod(value: InputMethod) {
+	function updateInputMethod(value: InputMethodType) {
 		secretInputMethod = value
 	}
 
