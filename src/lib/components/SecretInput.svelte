@@ -273,7 +273,7 @@
 					id="secretTextArea"
 					placeholder="Enter your secret here"
 					class="form-input-additional focus-within:ring-generate"
-				/>
+				></textarea>
 			</div>
 		{/if}
 	</div>
