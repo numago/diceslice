@@ -1,16 +1,29 @@
 @import "tailwindcss";
 
-@config "../tailwind.config.ts";
+@plugin "@tailwindcss/forms";
 
-@layer base {
-	@font-face {
-		font-family: 'Permanent Marker';
-		font-style: normal;
-		font-weight: 400;
-		font-display: block;
-		src: url(/fonts/PermanentMarker.woff2) format('woff2');
-	}
+@font-face {
+	font-family: 'Permanent Marker';
+	font-style: normal;
+	font-weight: 400;
+	font-display: block;
+	src: url(/fonts/PermanentMarker.woff2) format('woff2');
 }
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+--font-marker: "Permanent Marker", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+--color-assemble-light: #fff0e8;
+--color-assemble: #ff9e64;
+--color-assemble-dark: #471b00;
+
+--color-generate-light: #f0ebf9;
+--color-generate: #9d7cd8;
+--color-generate-dark: #1d1034;
+}
+
 
 .form-input-additional {
 	@apply bg-gray-50 w-full rounded-md border-0 ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset;
