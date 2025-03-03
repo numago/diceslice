@@ -111,11 +111,20 @@
 	</dl>
 </div>
 
-<style lang="postcss">
+<style>
+	@reference "../../app.css";
+
 	var {
-		@apply tracking-normal font-mono not-italic text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-800 font-semibold inline-flex items-center rounded-lg px-2;
+		@apply tracking-normal font-mono not-italic text-gray-700 bg-gray-100 font-semibold inline-flex items-center rounded-lg px-2;
 	}
+	:global(.dark) var {
+		@apply text-slate-300 bg-slate-800;
+	}
+	
 	h4 {
-		@apply font-semibold text-gray-900 dark:text-slate-300 leading-10;
+		@apply font-semibold text-gray-900 leading-10;
+	}
+	:global(.dark) h4 {
+		@apply text-slate-300;
 	}
 </style>

@@ -279,20 +279,35 @@
 	</div>
 </fieldset>
 
-<style lang="postcss">
+<style>
+	@reference "../../app.css";
+
 	.radio-button + label {
 		@apply inline-flex items-center justify-center gap-x-1 cursor-pointer rounded-md px-3 py-2 text-sm font-medium ring-2 w-full;
-		@apply text-gray-500 hover:text-gray-700 ring-gray-300;
-		@apply dark:text-slate-400 dark:hover:text-slate-300 dark:ring-slate-700;
+		@apply text-gray-500 ring-gray-300;
+	}
+	.radio-button + label:hover {
+		@apply text-gray-700;
+	}
+	:global(.dark) .radio-button + label {
+		@apply text-slate-400 ring-slate-700;
+	}
+	:global(.dark) .radio-button + label:hover {
+		@apply text-slate-300;
 	}
 
 	.radio-button:checked + label {
-		@apply ring-2 ring-generate text-gray-600 dark:text-slate-300;
+		@apply ring-2 ring-generate text-gray-600;
+	}
+	:global(.dark) .radio-button:checked + label {
+		@apply text-slate-300;
 	}
 
 	.file-input {
 		@apply p-0 rounded-md w-full file:py-2.5 file:mr-4 file:border-0 file:px-4 file:ring-2 file:rounded-l-md border-0 outline-0;
 		@apply file:bg-gray-200 file:text-gray-700;
-		@apply dark:file:bg-slate-500 dark:file:text-slate-100;
+	}
+	:global(.dark) .file-input::file-selector-button {
+		@apply bg-slate-500 text-slate-100;
 	}
 </style>

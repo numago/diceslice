@@ -1,8 +1,8 @@
 import type { Config } from 'tailwindcss'
 import defaultTheme from 'tailwindcss/defaultTheme'
 
-const config: Config = {
-	darkMode: 'class',
+const config = {
+	darkMode: ['variant', ['&:where(.dark, .dark *)', '&:where(:global(html.dark-mode))']],
 	content: ['./src/**/*.{html,js,svelte,ts}'],
 	theme: {
 		extend: {
@@ -24,6 +24,6 @@ const config: Config = {
 		}
 	},
 	plugins: [require('@tailwindcss/forms')]
-}
+} satisfies Config
 
 export default config 

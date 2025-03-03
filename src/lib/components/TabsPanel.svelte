@@ -56,20 +56,40 @@
 		</div>
 	</div>
 </div>
+<style>
+	@reference "../../app.css";
 
-<style lang="postcss">
 	.tab-label {
 		@apply w-full whitespace-nowrap border-b-4 border-gray-200 tracking-wide inline-flex justify-center items-center gap-x-2 py-5 px-1;
 		@apply border-b-transparent text-gray-500 bg-gray-100;
-		@apply hover:border-b-gray-300 hover:text-gray-500;
-		@apply dark:bg-slate-700 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:border-b-slate-600;
+	}
+
+	.tab-label:hover {
+		@apply border-b-gray-300 text-gray-500;
+	}
+
+	:global(.dark) .tab-label {
+		@apply bg-slate-700 text-slate-400;
+	}
+
+	:global(.dark) .tab-label:hover {
+		@apply border-b-slate-600 text-slate-300;
 	}
 
 	.tab-label.active.generate {
-		@apply border-b-generate text-gray-700 bg-generate-light dark:bg-slate-800 dark:text-slate-300;
+		@apply border-b-generate text-gray-700 bg-generate-light;
+	}
+
+	:global(.dark) .tab-label.active.generate {
+		@apply bg-slate-800 text-slate-300;
 	}
 
 	.tab-label.active.assemble {
-		@apply border-b-assemble text-gray-700 bg-assemble-light dark:bg-slate-800 dark:text-slate-300;
+		@apply border-b-assemble text-gray-700 bg-assemble-light;
+	}
+
+	:global(.dark) .tab-label.active.assemble {
+		@apply bg-slate-800 text-slate-300;
 	}
 </style>
+
