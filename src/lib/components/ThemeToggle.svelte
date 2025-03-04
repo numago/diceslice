@@ -1,16 +1,28 @@
 <script>
-	import { onMount } from 'svelte'
+	import { onMount } from 'svelte';
 
-	let isDark = false
-
+	let isDark = $state(false);
+	
 	onMount(() => {
-		isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-		document.body.classList.toggle('dark', isDark)
-	})
-
-	function toggleTheme() {
-		isDark = !isDark
-		document.body.classList.toggle('dark', isDark)
+		const theme = localStorage.getItem('theme');
+		if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+			isDark = true;
+		}
+	});
+	
+	$effect(() => {
+		if (typeof globalThis !== 'undefined') {
+			document.documentElement.classList.toggle('dark', isDark);
+			if (isDark) {
+				localStorage.setItem('theme', 'dark');
+			} else {
+				localStorage.setItem('theme', 'light');
+			}
+		}
+	});
+	
+	function handleToggleTheme() {
+		isDark = !isDark;
 	}
 </script>
 
@@ -19,16 +31,17 @@
 	class="bg-gray-200 dark:bg-slate-800 relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring focus:ring-gray-800 focus:dark:ring-slate-200"
 	role="switch"
 	aria-checked={isDark}
-	on:click={toggleTheme}
+	onclick={handleToggleTheme}
 >
 	<span class="sr-only">Use setting</span>
 	<span
-		class="translate-x-0 bg-gray-50 dark:translate-x-5 dark:bg-slate-950 pointer-events-none relative inline-block h-5 w-5 transform rounded-full shadow shadow-gray-300 dark:shadow-slate-700/90 ring-0 transition duration-200 ease-in-out"
+		class={`pointer-events-none relative inline-block h-5 w-5 transform rounded-full shadow shadow-gray-300 dark:shadow-slate-700/90 ring-0 transition duration-200 ease-in-out bg-gray-50 dark:bg-slate-950 ${isDark ? 'translate-x-5' : 'translate-x-0'}`}
 	>
 		<span
 			class="text-gray-700 opacity-100 dark:opacity-0 duration-200 ease-in absolute inset-0 flex h-full w-full items-center justify-center transition-opacity"
 			aria-hidden="true"
 		>
+			<!-- sun -->
 			<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24">
 				<path
 					fill="currentColor"
@@ -38,7 +51,6 @@
 					stroke-width="2"
 				/>
 			</svg>
-			<!-- sun -->
 		</span>
 		<span
 			class="opacity-0 dark:opacity-100 duration-200 ease-in absolute inset-0 flex h-full w-full text-slate-300 items-center justify-center transition-opacity"

@@ -79,16 +79,27 @@
 	</div>
 </div>
 
-<style lang="postcss">
+<style>
+	@reference "../../app.css";
+
 	h3 {
-		@apply font-semibold text-gray-800 dark:text-slate-300 text-xl mb-3;
+		@apply font-semibold text-gray-800 text-xl mb-3;
+	}
+	:global(.dark) h3 {
+		@apply text-slate-300;
 	}
 
 	dt {
-		@apply inline font-semibold text-gray-800 dark:text-slate-300 pr-1;
+		@apply inline font-semibold text-gray-800 pr-1;
+	}
+	:global(.dark) dt {
+		@apply text-slate-300;
 	}
 
 	dd {
-		@apply inline text-gray-700 dark:text-slate-400;
+		@apply inline text-gray-700;
+	}
+	:global(.dark) dd {
+		@apply text-slate-400;
 	}
 </style>
