@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { bytesToSizeString } from '$lib/utils'
+	import { bytesToSizeString } from '$lib/utils/bytesToSizeString'
 	import { initWorker } from '$lib/worker/initWorker'
 	import { assembleSecretPayload } from '$lib'
 	import type { SliceFilePayload } from '$lib/sliceFile'
@@ -8,7 +8,7 @@
 
 	import ErrorAlert from './ErrorAlert.svelte'
 	import ResultPanel from './ResultPanel.svelte'
-	import MultiFileInput from './MultiFileInput.svelte'
+	import SliceFileCollector from './SliceFileCollector.svelte'
 	import DownloadMultipleIcon from './icons/DownloadMultipleIcon.svelte'
 	import EyeIcon from './icons/EyeIcon.svelte'
 	import LoadingIcon from './icons/LoadingIcon.svelte'
@@ -40,13 +40,8 @@
 		}
 	})
 
-	// Function to handle form submission with preventDefault
-	function handleSubmit(event: Event) {
+	async function handleSubmit(event: Event): Promise<void> {
 		event.preventDefault()
-		assembleFiles()
-	}
-
-	async function assembleFiles(): Promise<void> {
 		isAssemblingSecret = true
 		resetErrorAndResults()
 
@@ -93,14 +88,6 @@
 		return URL.createObjectURL(fileBlob)
 	}
 
-	// Helper function to prevent default and call the provided function
-	function preventDefaultAndCall(fn: () => void) {
-		return (event: Event) => {
-			event.preventDefault()
-			fn()
-		}
-	}
-
 	async function toggleDecodedSecretDisplay(): Promise<void> {
 		if (decodedSecret != null) {
 			isShowDecodedSecret = !isShowDecodedSecret
@@ -144,15 +131,7 @@
 <div class="my-2">
 	<form onsubmit={handleSubmit}>
 		<div class="my-2">
-			<p class="form-label">Upload your slice files</p>
-			<MultiFileInput bind:fileArray={uploadedFiles}>
-				<p class="mb-2 text-sm text-gray-500 dark:text-slate-400 text-center">
-					<span class="font-semibold">Click to upload</span> or drag and drop
-				</p>
-				<p class="text-xs text-gray-500 dark:text-slate-400 text-center">
-					Upload the number of files required to recover your secret
-				</p>
-			</MultiFileInput>
+			<SliceFileCollector bind:fileArray={uploadedFiles} />
 		</div>
 		<div class="mt-3">
 			<button
@@ -196,11 +175,7 @@
 					</a>
 				</div>
 				<div class="col-span-1">
-					<button
-						type="button"
-						class="btn-secondary w-full"
-						onclick={preventDefaultAndCall(toggleDecodedSecretDisplay)}
-					>
+					<button type="button" class="btn-secondary w-full" onclick={toggleDecodedSecretDisplay}>
 						{#if isDecodingSecret}
 							<div class="flex items-center">
 								<LoadingIcon />
