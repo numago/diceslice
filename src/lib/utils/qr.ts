@@ -86,9 +86,9 @@ export function processQRCodeData(qrData: string, filename: string): File {
 	}
 }
 
-export const QR_VERSION = 40
+export const QR_VERSION = 20
 export const QR_ERROR_CORRECTION = 'medium'
-export const MAX_QR_SECRET_SIZE = 1552 // Maximum size for QRv40M
+export const MAX_QR_SECRET_SIZE = 255 // Empirically determined for QRv20M with @paulmillr/qr
 
 /**
  * Creates QR code PNG images from slice file buffers
