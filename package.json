@@ -1,6 +1,6 @@
 {
 	"name": "diceslice",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -42,6 +42,7 @@
 		"vitest": "^3.0.7"
 	},
 	"dependencies": {
+		"@paulmillr/qr": "^0.3.0",
 		"comlink": "^4.4.1",
 		"jszip": "^3.10.1"
 	}

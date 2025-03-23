@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { bytesToSizeString } from '$lib/utils'
+	import { bytesToSizeString } from '$lib/utils/bytesToSizeString'
 	import { fly } from 'svelte/transition'
 
 	export let secret: string | File | null

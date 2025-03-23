@@ -1,65 +1,86 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+import {
+	goToGeneratePage,
+	fillGenerateForm,
+	submitGenerateFormAndExpectDownloads
+} from '../utils/testHelpers'
 
-test.describe('Assemble files and download', () => {
-	const SHARE_COUNT = 3
+test.describe('Slice File Generation Process', () => {
+	const SLICE_COUNT = 3
 	const THRESHOLD = 2
 
-	async function fillForm(page: Page) {
-		await page.fill('input#shareCount', SHARE_COUNT.toString())
-		await page.fill('input#shareThreshold', THRESHOLD.toString())
+	test.beforeEach(async ({ page }) => {
+		await goToGeneratePage(page)
+	})
 
-		await expect(page.locator('input#shareCount')).toHaveValue(SHARE_COUNT.toString())
-		await expect(page.locator('input#shareThreshold')).toHaveValue(THRESHOLD.toString())
+	async function selectInputType(page, inputType) {
+		// Click the label instead of the input directly to avoid interception issues
+		await page.locator(`label[for="${inputType}"]`).click({ force: true })
 	}
 
-	async function submitFormAndHandleDownloads(page: Page) {
-		await page.click('button[type="submit"]')
-		await expect(page.locator('button', { hasText: /download.*slice.*files/i })).toBeVisible()
-		await expect(page.locator('button', { hasText: /download.*zip/i })).toBeVisible()
-
-		const downloadPromises = Array.from({ length: SHARE_COUNT }, () =>
-			page.waitForEvent('download')
-		)
-		await page.click('button:has-text("Download")')
+	async function waitForAndVerifyDownloads(page, count = SLICE_COUNT) {
+		const downloadPromises = Array.from({ length: count }, () => page.waitForEvent('download'))
+		await page.getByRole('button', { name: `Download ${count} slice files` }).click()
 		const downloads = await Promise.all(downloadPromises)
 
-		expect(downloads.length).toBe(SHARE_COUNT)
+		expect(downloads.length).toBe(count)
 	}
 
-	test.beforeEach(async ({ page }) => {
-		await page.goto('/')
+	test('generates slice files from text input with password field', async ({ page }) => {
+		await selectInputType(page, 'text')
+		await page.waitForSelector('input#secretTextInput', { state: 'visible' })
+		await page.locator('#secretTextInput').fill('this is a test')
+		await fillGenerateForm(page, SLICE_COUNT, THRESHOLD)
+		await submitGenerateFormAndExpectDownloads(page, SLICE_COUNT)
+
+		await waitForAndVerifyDownloads(page)
 	})
 
-	test('generates the slice files from text input with hidden text', async ({ page }) => {
-		// Select text as input method (the input element is sr-only)
-		await page.click('label[for="text"]')
+	test('generates slice files from visible textarea', async ({ page }) => {
+		await selectInputType(page, 'text')
+		await page.waitForSelector('input#secretTextInput', { state: 'visible' })
+		await page.getByRole('button', { name: /show secret/i }).click()
+		await page.waitForSelector('textarea#secretTextArea', { state: 'visible' })
+		await page.locator('#secretTextArea').fill('this is a test')
+		await fillGenerateForm(page, SLICE_COUNT, THRESHOLD)
+		await submitGenerateFormAndExpectDownloads(page, SLICE_COUNT)
 
-		await page.fill('input#secretTextInput', 'this is a test')
-		await fillForm(page)
-		await submitFormAndHandleDownloads(page)
-	})
-
-	test('generates the slice files from textarea', async ({ page }) => {
-		// Select text as input method (the input element is sr-only)
-		await page.click('label[for="text"]')
-		await page.click('button#showSecretText')
-
-		await page.fill('textarea#secretTextArea', 'this is a test')
-		await fillForm(page)
-		await submitFormAndHandleDownloads(page)
+		await waitForAndVerifyDownloads(page)
 	})
 
 	test('generates slice files from file upload', async ({ page }) => {
-		// Select file upload as input method (the input element is sr-only)
-		await page.click('label[for="file"]')
-
+		await selectInputType(page, 'file')
 		await page.setInputFiles('input#secretFile', {
-			name: 'file.txt',
-			mimeType: 'text/plain',
-			buffer: Buffer.from('this is a test')
+			name: 'test-secret.bin',
+			mimeType: 'application/octet-stream',
+			buffer: Buffer.from('hello')
 		})
-		await fillForm(page)
+		await page.getByText('test-secret.bin').waitFor({ state: 'visible' })
+		await fillGenerateForm(page, SLICE_COUNT, THRESHOLD)
+		await submitGenerateFormAndExpectDownloads(page, SLICE_COUNT)
 
-		await submitFormAndHandleDownloads(page)
+		await waitForAndVerifyDownloads(page)
+	})
+
+	test('generates both binary slice files and QR codes', async ({ page }) => {
+		await selectInputType(page, 'text')
+		await page.waitForSelector('input#secretTextInput', { state: 'visible' })
+		await page.locator('#secretTextInput').fill('this is a test')
+		await fillGenerateForm(page, SLICE_COUNT, THRESHOLD)
+
+		const checkboxChecked = await page.getByLabel('Generate QR-codes').isChecked()
+		if (!checkboxChecked) {
+			await page.getByLabel('Generate QR codes').click()
+		}
+
+		await submitGenerateFormAndExpectDownloads(page, SLICE_COUNT)
+		await expect(
+			page.getByRole('button', { name: `Download ${SLICE_COUNT} QR-codes` })
+		).toBeVisible()
+		const qrDownloadPromise = page.waitForEvent('download')
+		await page.getByRole('button', { name: `Download ${SLICE_COUNT} QR-codes` }).click()
+		const qrDownload = await qrDownloadPromise
+
+		expect(qrDownload.suggestedFilename()).toContain('.png')
 	})
 })

@@ -7,7 +7,7 @@
 			label: 'Generate slice files',
 			title: 'Generate encrypted slice files',
 			description:
-				'Input your secret data to obtain downloadable, encrypted slice files that are ready for you to distribute securely.',
+				'Input your secret data to obtain downloadable, encrypted slice files codes that are ready for you to distribute securely.',
 			component: SliceFileGeneratorForm,
 			cssClass: 'generate'
 		},
@@ -27,19 +27,24 @@
 <div
 	class="mx-auto max-w-2xl bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700 overflow-hidden rounded-xl border-2 border-gray-200 dark:border-slate-800 shadow-2xl shadow-gray-200 dark:shadow-slate-950"
 >
-	<nav class="grid grid-cols-2 divide-x divide-gray-300 dark:divide-slate-700" aria-label="tabs">
-		{#each tabs as tab, index (index)}
-			<div class="flex">
-				<button
-					class:active={activeTabIndex === index}
-					class="tab-label {tabs[index].cssClass}"
-					onclick={() => (activeTabIndex = index)}
-				>
-					<span class="sm:inline md:text-lg font-bold">{tab.label}</span>
-				</button>
-			</div>
-		{/each}
-	</nav>
+	<div class="flex divide-x divide-gray-300 dark:divide-slate-700">
+		<button
+			class="w-full py-5 px-4 font-bold md:text-lg tracking-wide {activeTabIndex === 0 
+				? 'bg-generate-light dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-b-4 border-b-generate' 
+				: 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:border-b-gray-300 hover:text-gray-500 dark:hover:border-b-slate-600 dark:hover:text-slate-300 border-b-4 border-transparent'}"
+			onclick={() => (activeTabIndex = 0)}
+		>
+			Generate slice files
+		</button>
+		<button
+			class="w-full py-5 px-4 font-bold md:text-lg tracking-wide {activeTabIndex === 1 
+				? 'bg-assemble-light dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-b-4 border-b-assemble' 
+				: 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:border-b-gray-300 hover:text-gray-500 dark:hover:border-b-slate-600 dark:hover:text-slate-300 border-b-4 border-transparent'}"
+			onclick={() => (activeTabIndex = 1)}
+		>
+			Assemble secret
+		</button>
+	</div>
 
 	<div class="tab-content px-4 py-5 sm:p-6">
 		<div>
@@ -49,47 +54,10 @@
 			<p class="mt-2 text-base text-gray-500 dark:text-slate-400">
 				{activeTab.description}
 			</p>
-			<hr class="mt-4 dark:border-slate-700" />
+			<hr class="mt-4 dark:border-slate-700 mb-2" />
 			<div>
 				<activeTab.component />
 			</div>
 		</div>
 	</div>
 </div>
-<style>
-	@reference "../../app.css";
-
-	.tab-label {
-		@apply w-full whitespace-nowrap border-b-4 border-gray-200 tracking-wide inline-flex justify-center items-center gap-x-2 py-5 px-1;
-		@apply border-b-transparent text-gray-500 bg-gray-100;
-	}
-
-	.tab-label:hover {
-		@apply border-b-gray-300 text-gray-500;
-	}
-
-	:global(.dark) .tab-label {
-		@apply bg-slate-700 text-slate-400;
-	}
-
-	:global(.dark) .tab-label:hover {
-		@apply border-b-slate-600 text-slate-300;
-	}
-
-	.tab-label.active.generate {
-		@apply border-b-generate text-gray-700 bg-generate-light;
-	}
-
-	:global(.dark) .tab-label.active.generate {
-		@apply bg-slate-800 text-slate-300;
-	}
-
-	.tab-label.active.assemble {
-		@apply border-b-assemble text-gray-700 bg-assemble-light;
-	}
-
-	:global(.dark) .tab-label.active.assemble {
-		@apply bg-slate-800 text-slate-300;
-	}
-</style>
-

@@ -1,61 +1,54 @@
-import { expect, test, type Page } from '@playwright/test'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import { expect, test } from '@playwright/test'
+import {
+	assembleSliceFiles,
+	uploadInvalidSliceFiles,
+	goToAssemblePage,
+	verifyQrTestFiles,
+	TEST_DATA_PATH
+} from '../utils/testHelpers'
 
-test.describe('file assembly process', () => {
-	const __dirname = dirname(fileURLToPath(import.meta.url))
-	const testDataPath = join(__dirname, '..', 'test-data')
-
+test.describe('Secret Assembly Process', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/')
-		// Open tab to open slice file assembly form
-		await page.locator('nav >> button', { hasText: /assemble/i }).click()
+		await goToAssemblePage(page)
 	})
 
-	async function assembleSliceFiles(page: Page, filePaths: string[]) {
-		// Upload slice files
-		await page.setInputFiles(
-			'input#fileUploadInput',
-			filePaths.map((path) => join(testDataPath, path))
-		)
-		// Click the submit button to start assembling files
-		await page.locator('form >> button[type=submit]', { hasText: /recover/i }).click()
-
-		// Check for success message
-		await expect(page.locator('.tab-content')).toHaveText(/success/i)
-	}
-
-	test('decode secret', async ({ page }) => {
+	test('assembles and decodes a small secret from binary slice files', async ({ page }) => {
 		await assembleSliceFiles(page, ['small-t2-1.slice', 'small-t2-2.slice'])
-		// Click button to start decoding the secret
-		await page.locator('output >> button', { hasText: /show/i }).click()
-
+		await page.getByRole('button', { name: /show your secret/i }).click()
 		await expect(page.locator('textarea')).toBeVisible()
 		await expect(page.locator('textarea')).toHaveValue('this is a test')
 	})
 
-	test('decode large secret', async ({ page }) => {
-		await assembleSliceFiles(page, ['100000B-t2-1.slice', '100000B-t2-2.slice'])
-		// Click button to start decoding the secret
-		await page.locator('output >> button', { hasText: /show/i }).click()
-		// Check for warning for decoding large files
-		await expect(page.locator('.tab-content')).toHaveText(/caution/i)
-		// Proceed with encoding (dismiss warning)
-		await page.locator('output >> button', { hasText: /decode secret/i }).click()
-
-		await expect(page.locator('.tab-content >> textarea')).toBeVisible()
+	test('assembles and decodes a secret from QR code files', async ({ page }) => {
+		try {
+			const qrFilePaths = await verifyQrTestFiles()
+			await assembleSliceFiles(page, qrFilePaths)
+			await page.getByRole('button', { name: /show your secret/i }).click()
+			await expect(page.locator('textarea')).toBeVisible()
+			await expect(page.locator('textarea')).toHaveValue('this is a test')
+		} catch (error) {
+			console.error('Error in QR code test:', error)
+			throw error
+		}
 	})
 
-	test('download secret', async ({ page }) => {
+	test('handles large secrets with warning before decoding', async ({ page }) => {
+		await assembleSliceFiles(page, ['100000B-t2-1.slice', '100000B-t2-2.slice'])
+		await page.getByRole('button', { name: /show your secret/i }).click()
+		await expect(page.getByText(/proceed with caution/i)).toBeVisible()
+		await page.getByRole('button', { name: /decode secret/i }).click()
+		await expect(page.locator('textarea')).toBeVisible()
+	})
+
+	test('allows downloading the assembled secret', async ({ page }) => {
 		await assembleSliceFiles(page, ['small-t2-1.slice', 'small-t2-2.slice'])
 		const downloadPromise = page.waitForEvent('download')
-		await page.locator('output >> a', { hasText: /download/i }).click()
-
+		await page.getByRole('link', { name: /download/i }).click()
 		expect((await downloadPromise).suggestedFilename()).toEqual(expect.stringContaining('.txt'))
 	})
 
-	// test('handle invalid slice files', async ({ page }) => {
-	// 	await assembleSliceFiles(page, ['invalid-1.slice', 'invalid-2.slice'])
-	// 	await expect(page.locator('.tab-content')).toHaveText(/error/i)
-	// })
+	test('displays error for invalid slice files', async ({ page }) => {
+		await uploadInvalidSliceFiles(page, ['invalid-1.slice', 'invalid-2.slice'])
+		await expect(page.getByText(/could not recover secret/i)).toBeVisible()
+	})
 })
