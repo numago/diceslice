@@ -36,7 +36,7 @@
 }
 
 .form-label {
-	@apply inline-flex text-gray-700 mb-3 mt-5 font-medium;
+	@apply inline-flex text-gray-700 pb-3 pt-5 font-medium;
 }
 .dark .form-label {
 	@apply text-gray-300;

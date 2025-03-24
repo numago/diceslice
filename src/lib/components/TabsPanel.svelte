@@ -25,25 +25,23 @@
 </script>
 
 <div
-	class="mx-auto max-w-2xl bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700 overflow-hidden rounded-xl border-2 border-gray-200 dark:border-slate-800 shadow-2xl shadow-gray-200 dark:shadow-slate-950"
+	class="mx-auto max-w-2xl bg-white dark:bg-slate-800 
+	       divide-y divide-gray-200 dark:divide-slate-700 
+	       overflow-hidden rounded-xl border-2 border-gray-200 
+	       dark:border-slate-800 shadow-2xl shadow-gray-200 
+	       dark:shadow-slate-950"
 >
 	<div class="flex divide-x divide-gray-300 dark:divide-slate-700">
-		<button
-			class="w-full py-5 px-4 font-bold md:text-lg tracking-wide {activeTabIndex === 0 
-				? 'bg-generate-light dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-b-4 border-b-generate' 
-				: 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:border-b-gray-300 hover:text-gray-500 dark:hover:border-b-slate-600 dark:hover:text-slate-300 border-b-4 border-transparent'}"
-			onclick={() => (activeTabIndex = 0)}
-		>
-			Generate slice files
-		</button>
-		<button
-			class="w-full py-5 px-4 font-bold md:text-lg tracking-wide {activeTabIndex === 1 
-				? 'bg-assemble-light dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-b-4 border-b-assemble' 
-				: 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:border-b-gray-300 hover:text-gray-500 dark:hover:border-b-slate-600 dark:hover:text-slate-300 border-b-4 border-transparent'}"
-			onclick={() => (activeTabIndex = 1)}
-		>
-			Assemble secret
-		</button>
+		{#each tabs as tab, index}
+			<button
+				class="tab-button {activeTabIndex === index 
+					? `active ${tab.cssClass}-tab` 
+					: 'inactive'}"
+				onclick={() => (activeTabIndex = index)}
+			>
+				{tab.label}
+			</button>
+		{/each}
 	</div>
 
 	<div class="tab-content px-4 py-5 sm:p-6">
@@ -61,3 +59,35 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	@reference "../../app.css";
+  
+	.tab-button {
+		@apply w-full py-5 px-4 font-bold md:text-lg tracking-wide border-b-4;
+	}
+  
+	.tab-button.active {
+		@apply text-gray-700;
+	}
+	:global(.dark) .tab-button.active {
+		@apply text-slate-300;
+	}
+  
+	.tab-button.inactive {
+		@apply bg-gray-100 text-gray-500 border-transparent
+		       hover:border-b-gray-300 hover:text-gray-500;
+	}
+	:global(.dark) .tab-button.inactive {
+		@apply bg-slate-700 text-slate-400 
+		       hover:border-b-slate-600 hover:text-slate-300;
+	}
+
+	:global(.dark) .tab-button.generate-tab {
+		@apply border-b-generate bg-slate-800;
+	}
+
+	:global(.dark) .tab-button.assemble-tab {
+		@apply border-b-assemble bg-slate-800;
+	}
+</style>
