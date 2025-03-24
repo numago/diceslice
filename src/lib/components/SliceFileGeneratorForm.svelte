@@ -19,7 +19,7 @@
 	let isQrCodesGenerated = $state(false)
 
 	let isGeneratingFiles = $state(false)
-	let generatedWithParams = $state({ sliceCount: 0, sliceThreshold: 0 })
+	let generatedWithParams = $state({ sliceCount: 0, sliceThreshold: 0, generateQrCodes: false })
 
 	type DownloadData = { url: string; filename: string; fileSize: number }
 	let sliceFileDownloads = $state<DownloadData[]>([])
@@ -75,7 +75,7 @@
 
 			zipDownload = await generateZipDownloadData(sliceFileBuffers, qrCodePngs)
 
-			generatedWithParams = { sliceCount, sliceThreshold }
+			generatedWithParams = { sliceCount, sliceThreshold, generateQrCodes }
 			secretInputRef?.clearAllInputs()
 			showResult = true
 		} catch (error) {
@@ -360,7 +360,7 @@
 					</div>
 				</button>
 
-				{#if generateQrCodes && !isQrCodesGenerated}
+				{#if generatedWithParams.generateQrCodes && !isQrCodesGenerated}
 					<p class="text-sm text-gray-600 dark:text-slate-300 text-center">
 						No QR-codes generated; the secret is too large for QR code format.
 					</p>
