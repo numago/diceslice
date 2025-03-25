@@ -1,7 +1,7 @@
 import { initWorker } from '$lib/worker/initWorker'
 import {
 	deserializeString,
-	concatArrayBuffers,
+	concatBuffers,
 	deserializeUint16,
 	serializeString,
 	serializeUint16,
@@ -57,8 +57,8 @@ export async function decryptAndDeserializePayload(
 	}
 }
 
-function serializeEncryptedData({ ciphertext, iv }: EncryptedData): ArrayBuffer {
-	return concatArrayBuffers(iv, ciphertext)
+function serializeEncryptedData({ iv, ciphertext }: EncryptedData): ArrayBuffer {
+	return concatBuffers(iv, ciphertext)
 }
 
 function deserializeEncryptedData(view: Uint8Array): EncryptedData {
@@ -69,7 +69,7 @@ function deserializeEncryptedData(view: Uint8Array): EncryptedData {
 
 function serializePayload(payload: SliceFilePayload): ArrayBuffer {
 	const metadataBuffer = serializeMetadata(payload.metadata)
-	return concatArrayBuffers(metadataBuffer, payload.data)
+	return concatBuffers(metadataBuffer, payload.data)
 }
 
 function deserializePayload(payloadBuffer: ArrayBuffer): SliceFilePayload {
@@ -90,7 +90,7 @@ function serializeMetadata(metadata: SliceFileMetadata): ArrayBuffer {
 
 	const metadataSizePrefixBuffer = serializeUint16(metadataBuffer.byteLength)
 
-	return concatArrayBuffers(metadataSizePrefixBuffer, metadataBuffer)
+	return concatBuffers(metadataSizePrefixBuffer, metadataBuffer)
 }
 
 function deserializeMetadata(payloadBuffer: ArrayBuffer): {

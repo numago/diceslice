@@ -4,13 +4,13 @@ import {
 	decryptAndDeserializePayload,
 	type SliceFilePayload
 } from './payload'
-import { concatArrayBuffers, uint8ArrayView } from './bufferUtils'
+import { concatBuffers, uint8ArrayView } from './bufferUtils'
 
 const PAYLOAD_OFFSET = HEADER_SIZE
 
 function getHeader(sliceFileBuffer: ArrayBuffer): SliceFileHeader {
-	const headerBuffer = uint8ArrayView(sliceFileBuffer, 0, HEADER_SIZE)
-	return deserializeHeader(headerBuffer)
+	const bufferView = uint8ArrayView(sliceFileBuffer, 0, HEADER_SIZE)
+	return deserializeHeader(bufferView)
 }
 
 async function getDecryptedPayload(
@@ -29,7 +29,7 @@ async function createBuffer(
 ): Promise<ArrayBuffer> {
 	const headerBuffer = serializeHeader(header)
 	const encryptedPayloadBuffer = await encryptAndSerializePayload(payload, cryptoKey)
-	const sliceFileBuffer = concatArrayBuffers(headerBuffer, encryptedPayloadBuffer)
+	const sliceFileBuffer = concatBuffers(headerBuffer, encryptedPayloadBuffer)
 	return sliceFileBuffer
 }
 

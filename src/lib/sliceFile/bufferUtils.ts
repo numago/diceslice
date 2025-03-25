@@ -1,13 +1,17 @@
-// Concatenate multiple ArrayBuffer objects into a single ArrayBuffer.
-export function concatArrayBuffers(...arrayBuffers: ArrayBuffer[]): ArrayBuffer {
-	const totalLength = arrayBuffers.reduce((acc, buffer) => acc + buffer.byteLength, 0)
+// Concatenate multiple BufferSource objects into a single ArrayBuffer.
+export function concatBuffers(...buffers: BufferSource[]): ArrayBuffer {
+	const totalLength = buffers.reduce((acc, buffer) => acc + buffer.byteLength, 0)
 	const result = new Uint8Array(totalLength)
 
 	let offset = 0
-	for (const buffer of arrayBuffers) {
-		const uint8 = new Uint8Array(buffer)
+	for (const buffer of buffers) {
+		const uint8 = new Uint8Array(
+			ArrayBuffer.isView(buffer) ? buffer.buffer : (buffer as ArrayBuffer),
+			ArrayBuffer.isView(buffer) ? buffer.byteOffset : 0,
+			buffer.byteLength
+		)
 		result.set(uint8, offset)
-		offset += uint8.byteLength
+		offset += buffer.byteLength
 	}
 
 	return result.buffer
@@ -59,7 +63,7 @@ export async function serializeFile(input: File): Promise<ArrayBuffer> {
 }
 
 // Converts a string to an ArrayBuffer using UTF-8 encoding.
-export function serializeString(str: string): ArrayBuffer {
+export function serializeString(str: string): Uint8Array {
 	return new TextEncoder().encode(str)
 }
 

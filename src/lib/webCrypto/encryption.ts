@@ -14,7 +14,10 @@ export async function encryptData(key: CryptoKey, plaintext: BufferSource): Prom
 			key,
 			plaintext
 		)
-		return { iv, ciphertext }
+		return { 
+			iv: new Uint8Array(iv), 
+			ciphertext: new Uint8Array(ciphertext) 
+		}
 	} catch (error) {
 		throw new CryptoError('Could not encrypt data.')
 	}
