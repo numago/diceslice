@@ -9,7 +9,7 @@ import { concatArrayBuffers, uint8ArrayView } from './bufferUtils'
 const PAYLOAD_OFFSET = HEADER_SIZE
 
 function getHeader(sliceFileBuffer: ArrayBuffer): SliceFileHeader {
-	const headerBuffer = uint8ArrayView(sliceFileBuffer, 0, HEADER_SIZE).buffer
+	const headerBuffer = uint8ArrayView(sliceFileBuffer, 0, HEADER_SIZE)
 	return deserializeHeader(headerBuffer)
 }
 

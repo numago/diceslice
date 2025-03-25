@@ -39,8 +39,8 @@ export function serializeUint8(num: number): ArrayBuffer {
 }
 
 // Retrieves a single 8-bit unsigned integer from the buffer at the given offset.
-export function deserializeUint8(buffer: ArrayBuffer, offset: number = 0): number {
-	return new DataView(buffer).getUint8(offset)
+export function deserializeUint8(view: Uint8Array, offset: number = 0): number {
+	return view[offset]
 }
 
 // Serializes a 16-bit unsigned integer into an ArrayBuffer.

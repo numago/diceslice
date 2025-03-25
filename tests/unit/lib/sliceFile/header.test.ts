@@ -18,7 +18,7 @@ describe('sliceHeader module', () => {
 		}
 
 		const serializedHeader = serializeHeader(originalHeader)
-		const deserializedHeader = deserializeHeader(serializedHeader)
+		const deserializedHeader = deserializeHeader(new Uint8Array(serializedHeader))
 
 		expect(deserializedHeader).toEqual(originalHeader)
 	})

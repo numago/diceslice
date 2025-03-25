@@ -41,8 +41,8 @@ describe('bufferUtils module', () => {
 
 	describe('deserializeUint8', () => {
 		it('should retrieve a single 8-bit unsigned integer from the buffer', () => {
-			const buffer = new Uint8Array([1, 2, 3]).buffer
-			expect(deserializeUint8(buffer, 1)).toBe(2)
+			const view = new Uint8Array([1, 2, 3])
+			expect(deserializeUint8(view, 1)).toBe(2)
 		})
 	})
 
