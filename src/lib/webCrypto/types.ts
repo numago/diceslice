@@ -1,4 +1,4 @@
 export type EncryptedData = {
-	iv: ArrayBuffer
-	ciphertext: ArrayBuffer
+	iv: Uint8Array
+	ciphertext: Uint8Array
 }

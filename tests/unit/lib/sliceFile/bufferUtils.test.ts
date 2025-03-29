@@ -1,5 +1,5 @@
 import {
-	concatArrayBuffers,
+	concatBuffers,
 	deserializeString,
 	serializeString,
 	deserializeUint16,
@@ -16,7 +16,7 @@ describe('bufferUtils module', () => {
 		it('should concatenate multiple ArrayBuffer objects into a single ArrayBuffer', () => {
 			const buf1 = new Uint8Array([1, 2, 3]).buffer
 			const buf2 = new Uint8Array([4, 5, 6]).buffer
-			const concatenated = concatArrayBuffers(buf1, buf2)
+			const concatenated = concatBuffers(buf1, buf2)
 
 			expect(concatenated.byteLength).toBe(6)
 			expect(new Uint8Array(concatenated)).toEqual(new Uint8Array([1, 2, 3, 4, 5, 6]))
@@ -41,8 +41,8 @@ describe('bufferUtils module', () => {
 
 	describe('deserializeUint8', () => {
 		it('should retrieve a single 8-bit unsigned integer from the buffer', () => {
-			const buffer = new Uint8Array([1, 2, 3]).buffer
-			expect(deserializeUint8(buffer, 1)).toBe(2)
+			const view = new Uint8Array([1, 2, 3])
+			expect(deserializeUint8(view, 1)).toBe(2)
 		})
 	})
 

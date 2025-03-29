@@ -1,13 +1,17 @@
-// Concatenate multiple ArrayBuffer objects into a single ArrayBuffer.
-export function concatArrayBuffers(...arrayBuffers: ArrayBuffer[]): ArrayBuffer {
-	const totalLength = arrayBuffers.reduce((acc, buffer) => acc + buffer.byteLength, 0)
+// Concatenate multiple BufferSource objects into a single ArrayBuffer.
+export function concatBuffers(...buffers: BufferSource[]): ArrayBuffer {
+	const totalLength = buffers.reduce((acc, buffer) => acc + buffer.byteLength, 0)
 	const result = new Uint8Array(totalLength)
 
 	let offset = 0
-	for (const buffer of arrayBuffers) {
-		const uint8 = new Uint8Array(buffer)
+	for (const buffer of buffers) {
+		const uint8 = new Uint8Array(
+			ArrayBuffer.isView(buffer) ? buffer.buffer : (buffer as ArrayBuffer),
+			ArrayBuffer.isView(buffer) ? buffer.byteOffset : 0,
+			buffer.byteLength
+		)
 		result.set(uint8, offset)
-		offset += uint8.byteLength
+		offset += buffer.byteLength
 	}
 
 	return result.buffer
@@ -39,8 +43,8 @@ export function serializeUint8(num: number): ArrayBuffer {
 }
 
 // Retrieves a single 8-bit unsigned integer from the buffer at the given offset.
-export function deserializeUint8(buffer: ArrayBuffer, offset: number = 0): number {
-	return new DataView(buffer).getUint8(offset)
+export function deserializeUint8(view: Uint8Array, offset: number = 0): number {
+	return view[offset]
 }
 
 // Serializes a 16-bit unsigned integer into an ArrayBuffer.
@@ -59,7 +63,7 @@ export async function serializeFile(input: File): Promise<ArrayBuffer> {
 }
 
 // Converts a string to an ArrayBuffer using UTF-8 encoding.
-export function serializeString(str: string): ArrayBuffer {
+export function serializeString(str: string): Uint8Array {
 	return new TextEncoder().encode(str)
 }
 

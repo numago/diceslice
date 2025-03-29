@@ -1,4 +1,4 @@
-import { concatArrayBuffers, deserializeUint8, uint8ArrayView, serializeUint8 } from './bufferUtils'
+import { concatBuffers, deserializeUint8, uint8ArrayView, serializeUint8, uint8ArraySubView } from './bufferUtils'
 import { SerializationError } from '../errors'
 import type { Share, Slice } from '$lib/secretSharing'
 import { AES_KEY_BYTE_SIZE } from '$lib/webCrypto'
@@ -19,18 +19,18 @@ const KEY_SLICE_OFFSET = THRESHOLD_OFFSET + THRESHOLD_SIZE
 
 export const HEADER_SIZE = KEY_SLICE_OFFSET + KEY_SLICE_SIZE
 
-export function serializeHeader(sliceHeader: SliceFileHeader) {
+export function serializeHeader(sliceHeader: SliceFileHeader): ArrayBuffer {
 	const versionBuffer = serializeUint8(sliceHeader.version)
 	const thresholdBuffer = serializeUint8(sliceHeader.threshold)
 	const keySliceBuffer = serializeKeySlice(sliceHeader.keySlice)
 
-	return concatArrayBuffers(versionBuffer, thresholdBuffer, keySliceBuffer)
+	return concatBuffers(versionBuffer, thresholdBuffer, keySliceBuffer)
 }
 
-export function deserializeHeader(sliceBuffer: ArrayBuffer): SliceFileHeader {
+export function deserializeHeader(sliceBuffer: Uint8Array): SliceFileHeader {
 	const version: number = deserializeUint8(sliceBuffer, VERSION_OFFSET)
 	const threshold: number = deserializeUint8(sliceBuffer, THRESHOLD_OFFSET)
-	const keySliceView = uint8ArrayView(sliceBuffer, KEY_SLICE_OFFSET, KEY_SLICE_SIZE)
+	const keySliceView = uint8ArraySubView(sliceBuffer, KEY_SLICE_OFFSET, KEY_SLICE_SIZE)
 	const keySlice: Slice = deserializeKeySlice(keySliceView)
 
 	return { version, threshold, keySlice }
