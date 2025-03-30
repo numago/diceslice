@@ -82,7 +82,7 @@
 </script>
 
 <div>
-	<div class="block mb-4 mt-6">
+	<div class="block mb-4">
 		<p class="form-label">Choose your input method</p>
 		<nav class="flex space-x-4" aria-label="Tabs">
 			{#each tabs as tab, i}
