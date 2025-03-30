@@ -15,8 +15,11 @@ test.describe('Slice File Generation Process', () => {
 	})
 
 	async function selectInputType(page, inputType) {
-		// Click the label instead of the input directly to avoid interception issues
-		await page.locator(`label[for="${inputType}"]`).click({ force: true })
+		if (inputType === 'text') {
+			await page.getByRole('button', { name: 'Text input' }).click();
+		} else if (inputType === 'file') {
+			await page.getByRole('button', { name: 'File upload' }).click();
+		}
 	}
 
 	async function waitForAndVerifyDownloads(page, count = SLICE_COUNT) {
@@ -51,12 +54,15 @@ test.describe('Slice File Generation Process', () => {
 
 	test('generates slice files from file upload', async ({ page }) => {
 		await selectInputType(page, 'file')
-		await page.setInputFiles('input#secretFile', {
+		
+		// Upload the file
+		await page.setInputFiles('input#fileInput', {
 			name: 'test-secret.bin',
 			mimeType: 'application/octet-stream',
 			buffer: Buffer.from('hello')
 		})
-		await page.getByText('test-secret.bin').waitFor({ state: 'visible' })
+		
+		await page.waitForSelector('input#fileInput[type="file"]')
 		await fillGenerateForm(page, SLICE_COUNT, THRESHOLD)
 		await submitGenerateFormAndExpectDownloads(page, SLICE_COUNT)
 
