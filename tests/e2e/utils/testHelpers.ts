@@ -47,6 +47,12 @@ export async function uploadInvalidSliceFiles(page: Page, filePaths: string[]): 
 	await page.getByRole('button', { name: /recover secret/i }).click()
 }
 
+export async function uploadEncryptedPayloadFile(page: Page, filePath: string): Promise<void> {
+	const fullPath = join(TEST_DATA_PATH, filePath)
+	await verifyTestFilesExist([fullPath])
+	await page.setInputFiles('#fileInput', fullPath)
+}
+
 export async function verifyQrTestFiles(): Promise<string[]> {
 	const qrFile1 = 'small-t2-1.slice.qr.png'
 	const qrFile2 = 'small-t2-2.slice.qr.png'
@@ -72,15 +78,22 @@ export async function fillGenerateForm(
 	await expect(page.locator('input#shareThreshold')).toHaveValue(threshold.toString())
 }
 
+export async function setDetachedFilesOption(page: Page, enabled: boolean): Promise<void> {
+	const isChecked = await page.getByLabel('Detached mode').isChecked();
+	if ((enabled && !isChecked) || (!enabled && isChecked)) {
+		await page.getByLabel('Detached mode').click();
+	}
+}
+
 export async function submitGenerateFormAndExpectDownloads(
 	page: Page,
 	sliceCount: number
 ): Promise<void> {
 	await page.locator('button[type="submit"]').click({ force: true })
-	await page.waitForSelector('div:has-text("Your slice files are ready!")', { state: 'visible' })
+	await page.waitForSelector('div:has-text("Your downloads are ready!")', { state: 'visible' })
 
 	await expect(
-		page.getByRole('button', { name: `Download ${sliceCount} slice files` })
+		page.getByRole('button', { name: new RegExp(`Download ${sliceCount} slice files`, 'i') })
 	).toBeVisible()
 	await expect(page.getByRole('button', { name: /Download all as ZIP/i })).toBeVisible()
 }

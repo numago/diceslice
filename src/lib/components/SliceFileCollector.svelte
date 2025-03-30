@@ -8,6 +8,31 @@
 	let { fileArray = $bindable() } = $props<{ fileArray: File[] }>()
 	let errorMessage = $state<string | null>(null)
 
+	let tabs = $state([
+		{ 
+			name: 'Upload Files', 
+			current: true,
+			icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+			</svg>`
+		},
+		{ 
+			name: 'Scan QR-codes', 
+			current: false,
+			icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
+				<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z" />
+			</svg>`
+		}
+	])
+
+	function selectTab(index: number) {
+		tabs = tabs.map((tab, i) => ({
+			...tab,
+			current: i === index
+		}))
+	}
+
 	async function handleFileSelect(files: FileList) {
 		await addFiles(files)
 	}
@@ -56,22 +81,49 @@
 	}
 </script>
 
-<p class="form-label">Upload your slice files</p>
-<FileUploadArea onFilesSelect={handleFileSelect} />
+<div>
+	<div class="block mb-4 mt-6">
+		<p class="form-label">Choose your input method</p>
+		<nav class="flex space-x-4" aria-label="Tabs">
+			{#each tabs as tab, i}
+				<button
+					type="button"
+					class="{tab.current
+						? 'text-slate-100 ring-assemble'
+						: ' text-slate-400 hover:text-slate-300 ring-slate-500'} 
+					rounded-md px-3 py-3 text-sm font-medium ring-2 w-full flex items-center justify-center"
+					aria-current={tab.current ? 'page' : undefined}
+					onclick={() => selectTab(i)}
+				>
+					{@html tab.icon}
+					{tab.name}
+				</button>
+			{/each}
+		</nav>
+	</div>
 
-<p class="form-label">Scan QR codes</p>
-<div class="mb-2">
-	<QRScanner onscan={handleQRScan} />
+	<!-- Tab content -->
+	{#if tabs[0].current}
+		<div>
+			<p class="form-label">Upload your slice files or keys</p>
+			<FileUploadArea onFilesSelect={handleFileSelect} />
+		</div>
+	{:else if tabs[1].current}
+		<div>
+			<p class="form-label">Scan QR-codes</p>
+			<QRScanner onscan={handleQRScan} />
+		</div>
+	{/if}
 </div>
 
-<p class="form-label">Your uploaded files:</p>
 {#if errorMessage}
 	<div use:scrollIntoView class="mt-2 text-red-500 text-sm text-center" transition:scale>
 		{errorMessage}
 	</div>
 {/if}
-<ol role="list" class="divide-y divide-gray-100 dark:divide-slate-700">
-	{#if fileArray.length}
+{#if fileArray.length}
+	<p class="form-label">Your uploaded files:</p>
+	<ol role="list" class="divide-y divide-gray-100 dark:divide-slate-700">
 		{#each fileArray as file, index (file.name + index)}
 			<li transition:slide class="flex items-center justify-between gap-x-6 py-3">
 				<div class="flex-1 min-w-0">
@@ -135,7 +187,5 @@
 				</button>
 			</li>
 		{/each}
-	{:else}
-		<li class="flex text-gray-600 dark:text-slate-400 italic pb-3">No files uploaded yet.</li>
-	{/if}
-</ol>
+	</ol>
+{/if}

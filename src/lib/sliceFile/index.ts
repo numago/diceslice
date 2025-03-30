@@ -13,25 +13,49 @@ function getHeader(sliceFileBuffer: ArrayBuffer): SliceFileHeader {
 	return deserializeHeader(bufferView)
 }
 
-async function getDecryptedPayload(
-	sliceFileBuffer: ArrayBuffer,
+async function getEncryptedPayload(sliceFileBuffer: ArrayBuffer) {
+	const encryptedPayloadView = uint8ArrayView(sliceFileBuffer, PAYLOAD_OFFSET)
+	return encryptedPayloadView
+}
+
+async function decryptPayload(
+	secret: Uint8Array,
 	cryptoKey: CryptoKey
 ): Promise<SliceFilePayload> {
-	const encryptedPayloadView = uint8ArrayView(sliceFileBuffer, PAYLOAD_OFFSET)
-	const payload = await decryptAndDeserializePayload(encryptedPayloadView, cryptoKey)
+	const payload = await decryptAndDeserializePayload(secret, cryptoKey)
 	return payload
 }
 
-async function createBuffer(
+async function createAttachedSliceFile(
 	header: SliceFileHeader,
-	payload: SliceFilePayload,
-	cryptoKey: CryptoKey
+	encryptedPayloadBuffer: ArrayBuffer,
 ): Promise<ArrayBuffer> {
 	const headerBuffer = serializeHeader(header)
-	const encryptedPayloadBuffer = await encryptAndSerializePayload(payload, cryptoKey)
 	const sliceFileBuffer = concatBuffers(headerBuffer, encryptedPayloadBuffer)
 	return sliceFileBuffer
 }
 
-export { getHeader, getDecryptedPayload, createBuffer }
+async function createDetachedSliceFile(
+	header: SliceFileHeader,
+): Promise<ArrayBuffer> {
+	const headerBuffer = serializeHeader(header)
+	return headerBuffer
+}
+
+async function createEncryptedPayloadBuffer(
+	payload: SliceFilePayload,
+	cryptoKey: CryptoKey,
+): Promise<ArrayBuffer> {
+	const encryptedPayloadBuffer = await encryptAndSerializePayload(payload, cryptoKey)
+	return encryptedPayloadBuffer
+}
+
+export {
+	getHeader, 
+	createAttachedSliceFile, 
+	createDetachedSliceFile, 
+	createEncryptedPayloadBuffer, 
+	decryptPayload,
+	getEncryptedPayload,
+}
 export * from './types'

@@ -91,44 +91,30 @@ export const QR_ERROR_CORRECTION = 'medium'
 export const MAX_QR_SECRET_SIZE = 255 // Empirically determined for QRv20M with @paulmillr/qr
 
 /**
- * Creates QR code PNG images from slice file buffers
- * @param sliceBuffers Array of Blob objects containing slice file data
- * @param pngDimensions Width and height of the output PNG images (defaults to 1024)
- * @returns Promise resolving to array of PNG Blobs or null if generation fails
+ * Creates a QR code PNG image from a slice file buffer
+ * @param buffer ArrayBuffer containing slice file data
+ * @param pngDimensions Width and height of the output PNG image (defaults to 1024)
+ * @returns Promise resolving to a PNG Blob or null if generation fails
  */
-export async function createQrCodes(
-	sliceBuffers: Blob[],
+export async function createQrCode(
+	buffer: ArrayBuffer,
 	pngDimensions = 1024
-): Promise<Blob[] | null> {
-	if (sliceBuffers.length === 0) return null
-
+): Promise<Blob | null> {
 	try {
-		for (const blob of sliceBuffers) {
-			const buffer = await blob.arrayBuffer()
-			const bufferView = new Uint8Array(buffer)
-
-			if (bufferView.length > MAX_QR_SECRET_SIZE) {
-				return null
-			}
+		if (buffer.byteLength > MAX_QR_SECRET_SIZE) {
+			return null
 		}
 
-		const pngBlobs: Blob[] = []
+		const bufferView = new Uint8Array(buffer)
+		const qrPayload = String.fromCharCode(...bufferView)
 
-		for (const blob of sliceBuffers) {
-			const buffer = await blob.arrayBuffer()
-			const bufferView = new Uint8Array(buffer)
-			const qrPayload = String.fromCharCode(...bufferView)
+		const svgString = encodeQR(qrPayload, 'svg', {
+			version: QR_VERSION,
+			ecc: QR_ERROR_CORRECTION
+		})
 
-			const svgString = encodeQR(qrPayload, 'svg', {
-				version: QR_VERSION,
-				ecc: QR_ERROR_CORRECTION
-			})
-
-			const pngBlob = await svgToPng(svgString, pngDimensions, pngDimensions)
-			pngBlobs.push(pngBlob)
-		}
-
-		return pngBlobs
+		const pngBlob = await svgToPng(svgString, pngDimensions, pngDimensions)
+		return pngBlob
 	} catch (error) {
 		return null
 	}

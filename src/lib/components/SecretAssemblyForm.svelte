@@ -7,6 +7,7 @@
 	import { scale } from 'svelte/transition'
 
 	import ErrorAlert from './ErrorAlert.svelte'
+	import FileInput from './FileInput.svelte'
 	import ResultPanel from './ResultPanel.svelte'
 	import SliceFileCollector from './SliceFileCollector.svelte'
 	import DownloadMultipleIcon from './icons/DownloadMultipleIcon.svelte'
@@ -18,6 +19,8 @@
 	const DECODING_WARNING_BYTE_LENGTH_THRESHOLD = 100000 // 0.1MB
 
 	let uploadedFiles = $state<File[]>([])
+	let encryptedPayloadFile = $state<File | null>(null)
+	let showEncryptedPayloadInput = $state(false)
 
 	let isAssemblingSecret = $state(false)
 	let errorMessage = $state('')
@@ -46,9 +49,19 @@
 		resetErrorAndResults()
 
 		try {
-			const payload = await assemblePayloadFromFiles(uploadedFiles)
+			const sliceFileBuffers = await Promise.all(uploadedFiles.map((file) => file.arrayBuffer()))
+
+			const encryptedPayloadView = encryptedPayloadFile
+				? new Uint8Array(await encryptedPayloadFile.arrayBuffer())
+				: undefined
+
+			const payload: SliceFilePayload = await assembleSecretPayload(
+				sliceFileBuffers,
+				encryptedPayloadView
+			)
 			setSecretProperties(payload)
-			uploadedFiles = [] // clear uploaded files
+			uploadedFiles = []
+			encryptedPayloadFile = null
 			isShowAssemblyResult = true
 		} catch (error) {
 			handleError(error)
@@ -76,11 +89,6 @@
 		if (secretBuffer) {
 			secretDownloadUrl = createDownloadUrl(new Uint8Array(secretBuffer))
 		}
-	}
-
-	async function assemblePayloadFromFiles(files: File[]): Promise<SliceFilePayload> {
-		const sliceFileBuffers = await Promise.all(files.map((file) => file.arrayBuffer()))
-		return assembleSecretPayload(sliceFileBuffers)
 	}
 
 	function createDownloadUrl(buffer: Uint8Array): string {
@@ -132,6 +140,16 @@
 	<form onsubmit={handleSubmit}>
 		<div class="my-2">
 			<SliceFileCollector bind:fileArray={uploadedFiles} />
+
+			<div class="my-8">
+
+					<FileInput
+						bind:fileInput={encryptedPayloadFile}
+						label="Upload encrypted secret file (optional)"
+						description="Upload your secret payload (created with detached mode) to decrypt with the uploaded keys."
+						required={false}
+					/>
+			</div>
 		</div>
 		<div class="mt-3">
 			<button
@@ -195,7 +213,7 @@
 									</label>
 									<textarea
 										readonly
-										class="form-input-additional dark:bg-slate-800"
+										class="form-input-additional bg-slate-800"
 										rows="6"
 										value={decodedSecret}
 									></textarea>

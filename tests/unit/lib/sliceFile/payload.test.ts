@@ -1,7 +1,7 @@
 import { encryptAndSerializePayload, decryptAndDeserializePayload } from '$lib/sliceFile/payload'
 import type { SliceFilePayload } from '$lib/sliceFile'
 import { generateAESKey } from '$lib/webCrypto'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { uint8ArrayView } from '$lib/sliceFile/bufferUtils'
 
 describe('slicePayload module', () => {
@@ -23,9 +23,9 @@ describe('slicePayload module', () => {
 			metadata
 		}
 
-		const encryptedBuffer = await encryptAndSerializePayload(payload, cryptoKey)
+		const encryptedPayloadBuffer = await encryptAndSerializePayload(payload, cryptoKey)
 		const decryptedData = await decryptAndDeserializePayload(
-			uint8ArrayView(encryptedBuffer),
+			uint8ArrayView(encryptedPayloadBuffer),
 			cryptoKey
 		)
 
@@ -40,9 +40,9 @@ describe('slicePayload module', () => {
 			metadata: {}
 		}
 
-		const encryptedBuffer = await encryptAndSerializePayload(originalData, cryptoKey)
+		const encryptedPayloadBuffer = await encryptAndSerializePayload(originalData, cryptoKey)
 		const decryptedData = await decryptAndDeserializePayload(
-			uint8ArrayView(encryptedBuffer),
+			uint8ArrayView(encryptedPayloadBuffer),
 			cryptoKey
 		)
 
