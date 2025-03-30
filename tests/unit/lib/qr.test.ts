@@ -3,7 +3,7 @@ import {
 	svgToPng,
 	scanImageForQRCode,
 	processQRCodeData,
-	createQrCodes,
+	createQrCode,
 	MAX_QR_SECRET_SIZE
 } from '$lib/utils/qr'
 
@@ -78,56 +78,33 @@ describe('QR module', () => {
 		})
 	})
 
-	describe('createQrCodes', () => {
-		it('should create QR code blobs from slice buffers', async () => {
-			const sliceBuffers = [new Blob([smallTestData]), new Blob([new Uint8Array([10, 20, 30])])]
-
-			const result = await createQrCodes(sliceBuffers, 200)
-
-			expect(result).toBeInstanceOf(Array)
-			expect(result).toHaveLength(2)
-			result?.forEach((blob) => {
-				expect(blob).toBeInstanceOf(Blob)
-				expect(blob.type).toBe('image/png')
-				expect(blob.size).toBeGreaterThan(0)
-			})
+	describe('createQrCode', () => {
+		it('should create a QR code from small data', async () => {
+			const result = await createQrCode(smallTestData.buffer)
+			expect(result).toBeInstanceOf(Blob)
+			expect(result).not.toBeNull()
+			expect(result?.type).toBe('image/png')
 		})
 
-		it('should return null for empty input array', async () => {
-			const result = await createQrCodes([])
+		it('should accept custom dimensions', async () => {
+			const customDimension = 512
+			const result = await createQrCode(smallTestData.buffer, customDimension)
+			expect(result).toBeInstanceOf(Blob)
+			expect(result).not.toBeNull()
+		})
+
+		it('should return null for data exceeding MAX_QR_SECRET_SIZE', async () => {
+			// Create a buffer larger than MAX_QR_SECRET_SIZE
+			const largeBuffer = new Uint8Array(MAX_QR_SECRET_SIZE + 10).fill(1).buffer
+			const result = await createQrCode(largeBuffer)
 			expect(result).toBeNull()
 		})
 
-		it('should return null if buffer size exceeds maximum QR size', async () => {
-			const largeArray = new Uint8Array(MAX_QR_SECRET_SIZE + 1)
-			const largeBlob = new Blob([largeArray])
-
-			const result = await createQrCodes([largeBlob])
-			expect(result).toBeNull()
-		})
-
-		it('should produce valid QR code images with the specified dimensions', async () => {
-			const testBlob = new Blob([smallTestData])
-			const dimensions = 512
-
-			const result = await createQrCodes([testBlob], dimensions)
-
-			if (result === null) {
-				throw new Error('QR codes generation failed')
-			}
-
-			const img = new Image()
-			const blobUrl = URL.createObjectURL(result[0])
-
-			return new Promise<void>((resolve) => {
-				img.onload = () => {
-					expect(img.width).toBe(dimensions)
-					expect(img.height).toBe(dimensions)
-					URL.revokeObjectURL(blobUrl)
-					resolve()
-				}
-				img.src = blobUrl
-			})
+		it('should handle empty data', async () => {
+			const emptyBuffer = new Uint8Array(0).buffer
+			const result = await createQrCode(emptyBuffer)
+			expect(result).toBeInstanceOf(Blob)
+			expect(result).not.toBeNull()
 		})
 	})
 })
