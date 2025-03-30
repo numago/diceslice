@@ -58,8 +58,8 @@ export function deserializeUint16(buffer: ArrayBuffer, offset: number = 0): numb
 }
 
 // Converts an File object to an ArrayBuffer.
-export async function serializeFile(input: File): Promise<ArrayBuffer> {
-	return await input.arrayBuffer()
+export async function serializeFile(input: File): Promise<Uint8Array> {
+	return new Uint8Array(await input.arrayBuffer())
 }
 
 // Converts a string to an ArrayBuffer using UTF-8 encoding.

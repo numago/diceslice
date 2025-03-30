@@ -1,66 +1,97 @@
 import { SecretAssemblyError, SliceFileGenerationError, InsufficientSlicesError, InconsistentThresholdError, InvalidThresholdError, InvalidShareCountError } from '$lib/errors'
 import * as SecretSharing from '$lib/secretSharing'
 import type { SliceFileHeader, SliceFilePayload } from '$lib/sliceFile'
-import * as SliceFile from '$lib/sliceFile'
+import * as SliceFileHandler from '$lib/sliceFile'
 import { exportRawKey, generateAESKey, importAESKey } from '$lib/webCrypto'
 
 // Placeholder for future version use. Currently not used in the application's logic.
 export const VERSION_NUMBER = 0
 
-/**
- * Generates slice file buffers from the given payload.
- */
+async function generateSliceFilesCommon(
+    threshold: number,
+    count: number,
+    payload: SliceFilePayload,
+): Promise<{ encryptedPayloadBuffer: ArrayBuffer, headers: SliceFileHeader[] }> {
+    if (threshold < 2) {
+        throw new InvalidThresholdError('Threshold must be at least 2');
+    }
+    if (count < threshold) {
+        throw new InvalidShareCountError('Share count must be at least equal to the threshold');
+    }
+
+    const version = VERSION_NUMBER
+    const encryptionKey = await generateAESKey()
+    const keyBytesView = await exportRawKey(encryptionKey)
+    const keySlices = await SecretSharing.generateSlices(keyBytesView, threshold, count)
+
+    const encryptedPayloadBuffer = await SliceFileHandler.createEncryptedPayloadBuffer(payload, encryptionKey);
+
+    const headers = keySlices.map(keySlice => ({ version, threshold, keySlice }));
+
+    return { encryptedPayloadBuffer, headers };
+}
+
 export async function generateSliceFileBuffers(
     threshold: number,
     count: number,
-    payload: SliceFilePayload
+    payload: SliceFilePayload,
 ): Promise<ArrayBuffer[]> {
     try {
-        if (threshold < 2) {
-            throw new InvalidThresholdError('Threshold must be at least 2');
-        }
-        if (count < threshold) {
-            throw new InvalidShareCountError('Share count must be at least equal to the threshold');
-        }
+        const { encryptedPayloadBuffer, headers } = await generateSliceFilesCommon(threshold, count, payload);
 
-        const version = VERSION_NUMBER
-        const encryptionKey = await generateAESKey()
-        const keyBytesView = await exportRawKey(encryptionKey)
-        const keySlices = await SecretSharing.generateSlices(keyBytesView, threshold, count)
+        const attachedSliceFiles = await Promise.all(
+            headers.map(header => SliceFileHandler.createAttachedSliceFile(header, encryptedPayloadBuffer))
+        );
 
-        const sliceFileBuffers = [];
-        for (const keySlice of keySlices) {
-            const header: SliceFileHeader = { version, threshold, keySlice };
-            const buffer = await SliceFile.createBuffer(header, payload, encryptionKey);
-            sliceFileBuffers.push(buffer);
-        }
-
-        return sliceFileBuffers
+        return attachedSliceFiles;
     } catch (error) {
-        if (error instanceof Error) {
+        if (error instanceof InvalidThresholdError || error instanceof InvalidShareCountError) {
             throw error;
         }
         throw new SliceFileGenerationError('Unexpected error occurred during slice file generation');
     }
 }
 
-/**
- * Assembles the secret payload from given slice file buffers.
- */
+export async function generateDetachedSliceFileBuffers(
+    threshold: number,
+    count: number,
+    payload: SliceFilePayload
+): Promise<{ payloadBuffer: ArrayBuffer, headerBuffers: ArrayBuffer[] }> {
+    try {
+        const { encryptedPayloadBuffer, headers } = await generateSliceFilesCommon(threshold, count, payload);
+
+        const headerBuffers = await Promise.all(
+            headers.map(header => SliceFileHandler.createDetachedSliceFile(header))
+        );
+
+        return {
+            payloadBuffer: encryptedPayloadBuffer,
+            headerBuffers
+        };
+    } catch (error) {
+        if (error instanceof InvalidThresholdError || error instanceof InvalidShareCountError) {
+            throw error;
+        }
+        throw new SliceFileGenerationError('Unexpected error occurred during slice file generation');
+    }
+}
+
 export async function assembleSecretPayload(
-    sliceFileBuffers: ArrayBuffer[]
+    sliceFileBuffers: ArrayBuffer[],
+    encryptedPayloadBuffer?: Uint8Array
 ): Promise<SliceFilePayload> {
     try {
         validateMinimumSliceFiles(sliceFileBuffers)
 
-        const sliceFileHeaders = sliceFileBuffers.map(SliceFile.getHeader)
+        const sliceFileHeaders = sliceFileBuffers.map(SliceFileHandler.getHeader)
         const threshold = getThreshold(sliceFileHeaders)
 
         validateThresholdRequirement(threshold, sliceFileBuffers)
 
         const decryptionKey = await assembleCryptoKey(sliceFileHeaders, threshold)
-        const decryptedPayload = await SliceFile.getDecryptedPayload(sliceFileBuffers[0], decryptionKey)
 
+        const payload = encryptedPayloadBuffer ?? await SliceFileHandler.getEncryptedPayload(sliceFileBuffers[0])
+        const decryptedPayload = await SliceFileHandler.decryptPayload(payload, decryptionKey)
         return decryptedPayload
     } catch (error) {
         if (error instanceof Error) {
